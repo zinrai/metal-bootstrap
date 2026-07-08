@@ -11,8 +11,8 @@ YAML configuration file:
 
 1. Download a file from an HTTP(S) URL and place it at a chosen path,
    verifying its SHA-256.
-2. Mount a local ISO image read-only and copy selected files out of it
-   to chosen paths.
+2. Read selected files directly out of a local ISO image and place them
+   at chosen paths.
 
 Both operations are idempotent. A second run skips work whose output is
 already in place.
@@ -31,12 +31,10 @@ publish these in different forms:
 
 ## Requirements
 
-- `mount` and `umount` from util-linux on PATH (for `iso:` operations).
-- Linux kernel with `iso9660` and loop device support.
-- `CAP_SYS_ADMIN` (typically: run as root) when `iso:` operations are
-  present. The mount call requires it. Configurations with only `files:`
-  do not need elevated privileges beyond what is required to write the
-  `dest` paths.
+metal-bootstrap is a single static binary with no runtime dependencies.
+`iso:` extraction reads the ISO9660 image directly through the file, so it
+needs no `mount`, no loop device, and no elevated privileges. It needs
+only permission to read the `from` ISO and write the `dest` paths.
 
 ## Usage
 
@@ -77,7 +75,7 @@ Each entry under `iso:` describes one extraction from a local ISO image:
 
 `from` is expected to be a file that was placed earlier in the same run
 (typically by a `files:` entry in the same target) or that already exists
-on disk. The same ISO is mounted only once per run, even when multiple
+on disk. The same ISO is opened only once per run, even when multiple
 `iso:` entries reference it.
 
 ## Idempotency
@@ -89,7 +87,7 @@ An `iso:` entry is skipped when `dest` exists. SHA-256 of the source ISO
 is the responsibility of the `files:` entry that declares it; `iso:` does
 not re-verify the source.
 
-If every entry in a target's `iso:` is skippable, the ISO is not mounted
+If every entry in a target's `iso:` is skippable, the ISO is not opened
 at all.
 
 ## Dry run
@@ -103,7 +101,7 @@ any changes. Each line of output describes one decision:
 - `extract: <dest> <- <iso>!<src>` -- ISO extraction will run
 
 `-dry-run` reads files from disk (it computes SHA-256 of existing `files:`
-entries to make the decision) but never writes, downloads, or mounts.
+entries to make the decision) but never writes or downloads.
 
 ## Safety against interruption
 
