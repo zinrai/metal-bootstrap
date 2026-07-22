@@ -19,7 +19,13 @@ func main() {
 func run() error {
 	configPath := flag.String("config", "config.yaml", "path to YAML config")
 	dryRun := flag.Bool("dry-run", false, "show what would be done without making changes")
+	showVersion := flag.Bool("version", false, "Print version information and exit")
 	flag.Parse()
+
+	if *showVersion {
+		printVersion()
+		os.Exit(0)
+	}
 
 	cfg, err := loadConfig(*configPath)
 	if err != nil {
